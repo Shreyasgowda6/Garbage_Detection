@@ -17,3 +17,27 @@ __pycache__/
 
 # Model weights
 weights/
+
+# Virtual environment
+.venv/
+
+# Dataset
+data/raw/
+data/processed/
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model weights
+*.pt
+
+# Training outputs
+runs/
+**/runs/
+
+# macOS
+.DS_Store
