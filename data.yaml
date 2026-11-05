@@ -1,0 +1,16 @@
+
+path: "/Users/shreyas/Desktop/THWS/2nd sem/Computer Vision/Portfolio 1/data/processed/GarbageDataset"
+
+train: train/images
+val: val/images
+test: test/images
+
+nc: 6
+
+names:
+  0: biodegradable
+  1: cardboard
+  2: glass
+  3: metal
+  4: paper
+  5: plastic
