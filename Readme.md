@@ -1,29 +1,25 @@
-# Garbage Detection Using YOLOv8
+# Waste Detection with YOLOv5s
 
-## Overview
+Object detection for automated waste sorting. The model detects waste items in images and assigns each bounding box to one of six material categories: biodegradable, cardboard, glass, metal, paper, or plastic.
 
-This project focuses on developing an object detection system for automated waste sorting using deep learning.
+The primary workflow is in [`notebooks/Portfolio1_YOLOv5s.ipynb`](notebooks/Portfolio1_YOLOv5s.ipynb). It analyzes and prepares the data, trains a pretrained YOLOv5s-family detector, evaluates it, and visualizes prediction errors.
 
-The objective is to detect and classify different types of waste in images using the YOLOv8 object detection architecture. The model predicts the waste category and its location through bounding boxes.
+## Features
 
-The project is part of **Portfolio 1 – Computer Vision**, at Technical University of Applied Sciences Würzburg-Schweinfurt (THWS).
-
-## Objectives
-
-- Analyse and prepare a waste detection dataset.
-- Design a suitable training and validation pipeline.
-- Train a YOLOv8 object detection model.
-- Evaluate model performance using object detection metrics.
-- Visualise predictions and analyse detection errors.
+- Dataset and annotation inspection
+- Annotation cleanup and duplicate-image analysis
+- Group-aware, multi-label train/validation/test splitting
+- Transfer learning with pretrained YOLOv5s-family weights
+- Per-class precision, recall, and mAP evaluation
+- Confusion matrices, precision-recall plots, and example detections
+- Error analysis by class, object size, and error type
 
 ## Dataset
 
-The dataset contains **10,464 images**, with annotations in YOLO format.
+The source dataset contains 10,464 JPEG images at 416 × 416 pixels, with YOLO-format labels (`class_id x_center y_center width height`). Class names are inferred from image filename prefixes and checked against the labels; the dataset does not include an official class-name file.
 
-The six object categories used in the project are:
-
-| Class ID | Category |
-|---|---|
+| ID | Category |
+|---:|---|
 | 0 | Biodegradable |
 | 1 | Cardboard |
 | 2 | Glass |
@@ -31,174 +27,95 @@ The six object categories used in the project are:
 | 4 | Paper |
 | 5 | Plastic |
 
-*Note: The class-name mapping is based on the dataset filename conventions and should be verified against the original dataset documentation.*
-
-### Dataset Split
-
-The dataset was divided into three subsets using iterative multilabel stratification.
-
-| Split | Images | Percentage |
-|---|---:|---:|
-| Training | 7,305 | 69.8% |
-| Validation | 2,113 | 20.2% |
-| Testing | 1,046 | 10.0% |
-| **Total** | **10,464** | **100%** |
-
-The test dataset was kept separate from training and validation and used for final model evaluation.
-
-## Model and Technologies
-
-### Model
-
-**YOLOv8s (You Only Look Once – Small)** was selected for object detection.
-
-YOLO is a single-stage object detector that predicts object classes and bounding boxes in one forward pass.
-
-### Technologies Used
-
-- Python
-- PyTorch
-- Ultralytics YOLOv8
-- OpenCV
-- NumPy
-- Pandas
-- Matplotlib
-- Seaborn
-- Jupyter Notebook
-
-### Hardware
-
-- Apple MacBook Air M5
-- 16 GB unified memory
-- Apple Metal Performance Shaders (MPS) acceleration
-
-## Training Configuration
-
-The initial YOLOv8s training configuration was:
-
-| Parameter | Value |
-|---|---|
-| Model | YOLOv8s |
-| Image size | 416 × 416 |
-| Epochs | 10 |
-| Batch size | 16 |
-| Device | MPS |
-| Optimizer | Auto |
-| Pretrained weights | Enabled |
-| Workers | 2 |
-| Random seed | 42 |
-
-Data augmentation included geometric transformations, horizontal flipping, HSV colour augmentation, and mosaic augmentation settings.
-
-Training completed successfully in approximately one hour.
-
-## Model Evaluation
-
-The trained model was evaluated on the separate test dataset.
-
-### Overall Test Results
-
-| Metric | Score |
-|---|---:|
-| Precision | 0.688 |
-| Recall | 0.488 |
-| mAP@50 | 0.559 |
-| mAP@50–95 | 0.362 |
-
-### Class-wise Results
-
-| Category | Precision | Recall | mAP@50 | mAP@50–95 |
-|---|---:|---:|---:|---:|
-| Biodegradable | 0.780 | 0.515 | 0.625 | 0.331 |
-| Cardboard | 0.528 | 0.440 | 0.484 | 0.336 |
-| Glass | 0.746 | 0.536 | 0.584 | 0.405 |
-| Metal | 0.631 | 0.656 | 0.689 | 0.449 |
-| Paper | 0.764 | 0.301 | 0.402 | 0.293 |
-| Plastic | 0.676 | 0.481 | 0.569 | 0.357 |
-
-### Initial Observations
-
-- Metal achieved the highest mAP@50 of 0.689.
-- Paper had the lowest recall at 0.301, indicating that many paper objects were missed.
-- Cardboard had the lowest precision at 0.528.
-- The difference between precision and recall suggests that the model needs improvement in detecting all objects present in an image.
-
-## Project Structure
+The dataset archive is not included in this repository. The notebook expects an archive containing a folder with `images/` and `labels/` subfolders. By default, it looks for:
 
 ```text
-Garbage_Detection/
-│
-├── data/
-│   ├── raw/
-│   │   └── GarbageDataset/
-│   │
-│   └── processed/
-│       └── GarbageDataset/
-│           ├── train/
-│           │   ├── images/
-│           │   └── labels/
-│           ├── val/
-│           │   ├── images/
-│           │   └── labels/
-│           ├── test/
-│           │   ├── images/
-│           │   └── labels/
-│           └── data.yaml
-│
+/content/drive/MyDrive/GarbageDataset.zip
+```
+
+Change `ZIP_PATH` in the notebook if the archive is stored elsewhere.
+
+## Run in Google Colab
+
+1. Open `notebooks/Portfolio1_YOLOv5s.ipynb` in Google Colab.
+2. Select **Runtime → Change runtime type → GPU**.
+3. Put the dataset archive in Google Drive and confirm `ZIP_PATH` in the notebook.
+4. Run the notebook from top to bottom. It installs its Python packages, mounts Drive, prepares the dataset, trains the detector, evaluates the validation and test splits, and displays visualizations.
+5. The notebook copies the model and result files to `MyDrive/Portfolio_1_results` so they remain available after the Colab runtime ends.
+
+The notebook uses Ultralytics' YOLOv5s-family `yolov5su.pt` pretrained checkpoint. It currently targets Google Colab; running it locally requires replacing its Google Drive setup and archive path with local paths.
+
+## Training configuration
+
+The saved run used:
+
+- Model: pretrained `yolov5su.pt` (YOLOv5u variant)
+- Image size: 416
+- Epochs: 100; early-stopping patience: 20
+- Batch size: 16
+- Optimizer: SGD with cosine learning-rate schedule
+- Augmentation: mosaic, HSV variation, horizontal flip, scale, translation, small rotation, and erasing
+- Seed: 42; deterministic mode enabled
+- Hardware: Google Colab Tesla T4
+
+The best checkpoint was selected using validation mAP@0.5:0.95 at epoch 86. Training ran for 100 epochs.
+
+## Evaluation results
+
+Results below are from the saved checkpoint in `Portfolio_1_results/best.pt`.
+
+| Category | Test boxes | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
+|---|---:|---:|---:|---:|---:|
+| Biodegradable | 4,709 | 0.711 | 0.541 | 0.602 | 0.330 |
+| Cardboard | 484 | 0.657 | 0.583 | 0.645 | 0.463 |
+| Glass | 689 | 0.809 | 0.808 | 0.869 | 0.672 |
+| Metal | 605 | 0.767 | 0.702 | 0.755 | 0.524 |
+| Paper | 524 | 0.775 | 0.512 | 0.613 | 0.453 |
+| Plastic | 691 | 0.769 | 0.520 | 0.643 | 0.423 |
+| **Overall** | **7,702** | **0.748** | **0.611** | **0.688** | **0.478** |
+
+Glass achieved the strongest result. Small and crowded objects, especially biodegradable items, were the main challenge. At a separate confidence threshold of 0.25 and matching IoU of 0.5, the error analysis counted 4,631 true positives, 2,164 false positives, and 3,071 missed objects. Recall by object size was 0.328 for small, 0.627 for medium, and 0.827 for large objects.
+
+## Data-split caveat
+
+The split grouped images with perceptual-hash distance ≤ 4, yielding 7,331 training, 2,022 validation, and 1,029 test images. This prevented cross-split matches at that selected hash threshold. A separate thumbnail-correlation check nevertheless found 53 similar image pairs across splits at correlation ≥ 0.92, including 14 at ≥ 0.95. The evaluation may therefore retain some near-duplicate leakage; treat the reported test metrics as estimates rather than a fully independent benchmark.
+
+The processed dataset currently in `data/processed/GarbageDataset` is from an earlier split (7,305 / 2,113 / 1,046). Running the primary notebook regenerates the split used for the results above.
+
+## Results and artifacts
+
+The exported run is stored in `Portfolio_1_results/`:
+
+- `best.pt` — best model checkpoint
+- `test_metrics_per_class.csv` — validation and test metrics by category
+- `runs/yolov5s_garbage/` — training configuration, curves, sample batches, and checkpoint history
+- `runs/eval_val/` and `runs/eval_test/` — confusion matrices, PR/F1 curves, and labeled/predicted batch visualizations
+- `duplicate_groups.json` and `duplicates/` — duplicate-analysis groups, images, and reports
+
+## Repository layout
+
+```text
+.
 ├── notebooks/
-│   └── P1.ipynb
-│
-├── results/
-│   ├── plots/
-│   └── predictions/
-│
+│   ├── Portfolio1_YOLOv5s.ipynb  # primary end-to-end workflow
+│   ├── P1.ipynb                  # earlier YOLOv8 experiment
+│   ├── p2.ipynb                  # structured notebook workflow
+│   └── Pipeline.ipynb            # additional notebook
+├── data/
+│   ├── raw/GarbageDataset/       # local source images and labels
+│   └── processed/GarbageDataset/ # generated train/val/test dataset
+├── Portfolio_1_results/         # exported model and run artifacts
 ├── weights/
-│
 ├── requirements.txt
-├── .gitignore
 └── README.md
 ```
 
-*Note: Training outputs are currently saved under `notebooks/runs/`. The structure above represents the intended organisation; the final output folders will be organised during project cleanup.*
+## Limitations and next steps
 
-## Installation
+- Class names are inferred from filenames rather than an official dataset specification.
+- Some labels have inconsistent box granularity, especially for small or overlapping food items.
+- Small objects have substantially lower recall than large objects.
+- Near-duplicate images may remain across the data splits.
+- The evaluation uses a single dataset and fixed 416-pixel image resolution; performance on production sorting-line images has not been measured.
 
-Clone the repository:
-
-```bash
-git clone https://github.com/Shreyasgowda6/Garbage_Detection.git
-```
-
-Navigate to the project directory:
-
-```bash
-cd Garbage_Detection
-```
-
-Create a virtual environment:
-
-```bash
-python3 -m venv .venv
-```
-
-Activate it:
-
-```bash
-source .venv/bin/activate
-```
-
-Install the required dependencies:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Open the notebook:
-
-```bash
-jupyter notebook
-```
-
-Run `notebooks/P1.ipynb` to explore the dataset, training pipeline, evaluation, and visualisations.
-
-**Dataset and trained weights:** The dataset and model checkpoint files are not included in the Git repository. They must be obtained separately.
+Potential improvements include reviewing the remaining similar-image pairs, standardizing ambiguous annotations, and evaluating higher-resolution inputs or tiling for small objects.
